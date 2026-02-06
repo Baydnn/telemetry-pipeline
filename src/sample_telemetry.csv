@@ -1,0 +1,15 @@
+timestamp,speed_kmh,throttle_pct,brake_pct,regen_brake,motor_rpm,battery_voltage,battery_current,battery_soc_pct,battery_temp_c,motor_temp_c,inverter_temp_c,cabin_temp_c,odometer_km,power_kw,energy_used_kw,event_type,event_description
+2025-02-05T08:00:00,0,0,0,0,0,380,0,95,22,25,24,20,1200.5,0,0,INFO,Vehicle started
+2025-02-05T08:01:00,25,15,0,0,1200,378,-5,94,23,28,26,20,1200.6,12,0.02,INFO,Driving
+2025-02-05T08:02:00,45,30,0,0,2200,376,-12,93,24,32,28,20,1200.8,25,0.05,INFO,Driving
+2025-02-05T08:03:00,65,45,0,0,3200,374,-18,92,25,38,32,21,1201.0,38,0.09,INFO,Driving
+2025-02-05T08:04:00,85,55,0,0,4200,372,-22,91,26,45,35,21,1201.3,45,0.14,INFO,Driving
+2025-02-05T08:05:00,110,70,0,0,5200,370,-28,90,27,52,40,22,1201.6,55,0.20,WARNING,High speed sustained
+2025-02-05T08:06:00,125,80,0,0,6000,368,-32,89,28,58,45,22,1201.9,62,0.27,WARNING,Speed limit exceeded
+2025-02-05T08:07:00,90,20,10,5,4000,369,-15,88,29,62,48,22,1202.2,35,0.31,INFO,Decelerating
+2025-02-05T08:08:00,50,0,30,15,2000,371,8,87,30,55,44,22,1202.4,0,0.31,INFO,Regen braking
+2025-02-05T08:09:00,20,0,0,20,800,373,12,86,31,48,42,23,1202.5,0,0.31,INFO,Coasting
+2025-02-05T08:10:00,0,0,0,0,0,375,0,85,32,42,40,23,1202.5,0,0.31,SYSTEM,Vehicle stopped
+2025-02-05T08:15:00,0,0,0,0,0,374,0,84,35,38,38,22,1202.5,0,0.31,INFO,Parked
+2025-02-05T08:20:00,0,0,0,0,0,373,0,83,38,35,36,21,1202.5,0,0.31,WARNING,Battery temperature rising in sun
+2025-02-05T08:25:00,0,0,0,0,0,372,0,82,52,32,34,21,1202.5,0,0.31,WARNING,Battery temp threshold approached
