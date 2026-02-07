@@ -23,7 +23,7 @@ jobs:
           docker run --rm \
             -v "$PWD:/app" \
             telemetry-analyzer \
-            data/sample.csv -o out/report.md
+            src/sample_telemetry.csv -o out/report.md
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
