@@ -4,7 +4,7 @@ Reads a telemetry CSV and generates a Markdown report with speed statistics, war
 
 ## CSV format
 
-The input CSV must include these columns (order does not matter):
+If you want to use the telemetry log generator, your .csv file must have these (in any order):
 
 | Column | Description |
 |--------|-------------|
@@ -27,31 +27,9 @@ The input CSV must include these columns (order does not matter):
 | `event_type` | `SYSTEM`, `INFO`, or `WARNING` |
 | `event_description` | Description of the event |
 
-*(The header `event_descirption` is also accepted as an alias for `event_description`.)*
+### Docker Setup
 
-## Setup
-
-```bash
-python -m pip install -r requirements.txt
-```
-
-## Usage
-
-```bash
-python src/analyze.py path/to/telemetry.csv
-```
-
-Report is written to `path/to/telemetry_report.md` by default.
-
-Specify output path:
-
-```bash
-python src/analyze.py path/to/telemetry.csv -o report.md
-```
-
-## Docker Usage
-
-### Build the Docker image
+## Build the Docker image
 
 From the `telemetry-pipeline` directory:
 
@@ -72,11 +50,6 @@ docker run --rm -v "$(pwd)/data:/data" telemetry-analyzer /data/your_file.csv
 docker run --rm -v "${PWD}/data:/data" telemetry-analyzer /data/your_file.csv
 ```
 
-**Windows CMD:**
-```cmd
-docker run --rm -v "%cd%/data:/data" telemetry-analyzer /data/your_file.csv
-```
-
 ### Specify output path with Docker
 
 ```bash
@@ -84,6 +57,29 @@ docker run --rm -v "$(pwd)/data:/data" telemetry-analyzer /data/your_file.csv -o
 ```
 
 The report will be saved in your local `data/` folder.
+
+### Non-docker Setup
+
+##If you don't want to use docker, you can also install it like this:
+
+```bash
+python -m pip install -r requirements.txt
+```
+
+Then run it.
+
+```bash
+python src/analyze.py path/to/telemetry.csv
+```
+
+Report is written to `path/to/telemetry_report.md` by default.
+
+Specify output path:
+
+```bash
+python src/analyze.py path/to/telemetry.csv -o report.md
+```
+
 
 ## Report contents
 
