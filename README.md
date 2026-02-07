@@ -1,6 +1,7 @@
 # Telemetry CSV Analyzer
 
 Reads a telemetry CSV and generates a Markdown report with speed statistics, warnings, and threshold breach timestamps.
+It uses docker to containerize the entire program for easy usage, and uploads the logs to an AWS S3 bucket via Github actions.
 
 ## CSV format
 
