@@ -37,7 +37,10 @@ EXPECTED_COLUMNS = [
 ]
 
 # Optional column name typo seen in CSVs
-COLUMN_ALIASES = {"event_descirption": "event_description"}
+COLUMN_ALIASES = {
+    "event_descirption": "event_description",
+    "energy_used_kwh": "energy_used_kw",  # Accept kwh or kw
+}
 
 # Thresholds: when a value goes over max or under min, we record the timestamp
 # Omit min or max for columns you don't want to check
