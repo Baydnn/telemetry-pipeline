@@ -11,7 +11,10 @@ from pathlib import Path
 
 import pandas as pd  # type: ignore[import-untyped]
 
-# Expected CSV columns (order flexible; we validate presence)
+# Expected CSV columns (order flexible, presence validated)
+# If they any of these columns are missing, the script will raise an error. 
+# In the future, I will problably add a way to automatically recognize the columns and add them to the list.
+# Or I will make it take in a .json file with the specifications for each report.
 EXPECTED_COLUMNS = [
     "timestamp",
     "speed_kmh",
@@ -36,8 +39,8 @@ EXPECTED_COLUMNS = [
 # Optional column name typo seen in CSVs
 COLUMN_ALIASES = {"event_descirption": "event_description"}
 
-# Thresholds: when a value goes over max or under min, we record the timestamp.
-# Omit min/max for columns you don't want to check.
+# Thresholds: when a value goes over max or under min, we record the timestamp
+# Omit min or max for columns you don't want to check
 THRESHOLDS = {
     "speed_kmh": {"max": 120},
     "battery_temp_c": {"max": 50},
@@ -47,7 +50,7 @@ THRESHOLDS = {
     "cabin_temp_c": {"max": 40, "min": 5},
 }
 
-# Numeric columns for stats and threshold checks (must be coercible to float)
+# Numeric columns for stats and threshold checks (must be changeable to float)
 NUMERIC_COLUMNS = [
     "speed_kmh",
     "throttle_pct",
@@ -66,9 +69,9 @@ NUMERIC_COLUMNS = [
     "energy_used_kw",
 ]
 
-
+# Loads the CSV file in the first place, reads the dataframe, each row is a data point and each column is a field
+# Also add typo support for the column names
 def load_csv(path: Path) -> pd.DataFrame:
-    """Load CSV and normalize column names (aliases)."""
     df = pd.read_csv(path)
     # Normalize optional typo
     rename = {k: v for k, v in COLUMN_ALIASES.items() if k in df.columns}
@@ -76,16 +79,14 @@ def load_csv(path: Path) -> pd.DataFrame:
         df = df.rename(columns=rename)
     return df
 
-
+# The part of the code that throws an error if the columns are missing.
 def validate_columns(df: pd.DataFrame) -> None:
-    """Ensure all expected columns exist."""
     missing = [c for c in EXPECTED_COLUMNS if c not in df.columns]
     if missing:
         raise ValueError(f"CSV missing columns: {missing}. Found: {list(df.columns)}")
 
-
+#Changning or coercing the numeric columns to float, making all of the columns actual numbers
 def coerce_numeric(df: pd.DataFrame) -> pd.DataFrame:
-    """Coerce numeric columns to float; non-numeric become NaN for that cell."""
     out = df.copy()
     for col in NUMERIC_COLUMNS:
         if col not in out.columns:
@@ -93,9 +94,8 @@ def coerce_numeric(df: pd.DataFrame) -> pd.DataFrame:
         out[col] = pd.to_numeric(out[col], errors="coerce")
     return out
 
-
+#Building the speed statistics, mean, max, min for speed_kmh (ignoring any not numbers or NaN)
 def build_speed_stats(df: pd.DataFrame) -> dict:
-    """Compute mean, max, min for speed_kmh (ignoring NaN)."""
     s = df["speed_kmh"].dropna()
     if s.empty:
         return {"mean_kmh": None, "max_kmh": None, "min_kmh": None, "count": 0}
@@ -106,18 +106,23 @@ def build_speed_stats(df: pd.DataFrame) -> dict:
         "count": int(len(s)),
     }
 
-
+#Getting the warnings, event_type is WARNING, with timestamp and event_description
+#So if there are no warnings, it will return an empty dataframe
+#If there are warnings, it will return a dataframe with the timestamp, event_type, and event_description
+#It will also remove any duplicate warnings
 def get_warnings(df: pd.DataFrame) -> pd.DataFrame:
-    """Rows where event_type is WARNING, with timestamp and event_description."""
     if "event_type" not in df.columns:
         return pd.DataFrame()
     mask = df["event_type"].astype(str).str.upper() == "WARNING"
     out = df.loc[mask, ["timestamp", "event_type", "event_description"]].copy()
     return out.drop_duplicates().reset_index(drop=True)
 
-
+#Getting the threshold breaches, for each threshold, collect (timestamp, column, value, limit_type, limit_value)
+#By "breach", I mean that the valeu is over the max or under the min
+#So if there are no threshold breaches, it will return an empty list
+#If there are threshold breaches, it will return a list of dictionaries with the timestamp, column, value, limit_type, and limit_value
+#It will also remove any duplicate threshold breaches
 def get_threshold_breaches(df: pd.DataFrame) -> list[dict]:
-    """For each threshold, collect (timestamp, column, value, limit_type, limit_value)."""
     breaches = []
     for col, limits in THRESHOLDS.items():
         if col not in df.columns:
@@ -141,7 +146,11 @@ def get_threshold_breaches(df: pd.DataFrame) -> list[dict]:
                 })
     return breaches
 
-
+#Writing the report, the report is a markdown file with the following sections:
+#1. Speed statistics
+#2. Numeric summary
+#3. Warnings
+#4. Threshold breaches
 def write_report(
     out_path: Path,
     speed_stats: dict,
@@ -149,7 +158,6 @@ def write_report(
     breaches: list[dict],
     numeric_summary: pd.DataFrame,
 ) -> None:
-    """Write Markdown report to out_path."""
     lines = [
         "# Telemetry Analysis Report",
         "",
@@ -238,9 +246,11 @@ def write_report(
 
     out_path.write_text("\n".join(lines), encoding="utf-8")
 
-
+#Building the numeric summary table, one row per numeric column with columns: column, mean, max, min (rounded)
+#So if there are no numeric columns, it will return an empty dataframe
+#If there are numeric columns, it will return a dataframe with the column, mean, max, and min
+#It will also remove any duplicate numeric columns
 def numeric_summary_table(df: pd.DataFrame) -> pd.DataFrame:
-    """One row per numeric column with columns: column, mean, max, min (rounded)."""
     rows = []
     for col in NUMERIC_COLUMNS:
         if col not in df.columns:
@@ -258,7 +268,7 @@ def numeric_summary_table(df: pd.DataFrame) -> pd.DataFrame:
         return pd.DataFrame()
     return pd.DataFrame(rows)
 
-
+#The main function, it will parse the arguments, load the csv, validate the columns, coerce the numeric columns, build the speed statistics, get the warnings, get the threshold breaches, build the numeric summary table, and write the report
 def main() -> int:
     parser = argparse.ArgumentParser(description="Analyze telemetry CSV and generate Markdown report.")
     parser.add_argument("input_csv", type=Path, help="Path to input CSV file")

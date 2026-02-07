@@ -49,6 +49,42 @@ Specify output path:
 python src/analyze.py path/to/telemetry.csv -o report.md
 ```
 
+## Docker Usage
+
+### Build the Docker image
+
+From the `telemetry-pipeline` directory:
+
+```bash
+docker build -t telemetry-analyzer .
+```
+
+### Run with Docker
+
+Mount your data directory and run the analyzer:
+
+```bash
+docker run --rm -v "$(pwd)/data:/data" telemetry-analyzer /data/your_file.csv
+```
+
+**Windows PowerShell:**
+```powershell
+docker run --rm -v "${PWD}/data:/data" telemetry-analyzer /data/your_file.csv
+```
+
+**Windows CMD:**
+```cmd
+docker run --rm -v "%cd%/data:/data" telemetry-analyzer /data/your_file.csv
+```
+
+### Specify output path with Docker
+
+```bash
+docker run --rm -v "$(pwd)/data:/data" telemetry-analyzer /data/your_file.csv -o /data/report.md
+```
+
+The report will be saved in your local `data/` folder.
+
 ## Report contents
 
 1. **Speed statistics** – Mean, max, and min speed (km/h).
