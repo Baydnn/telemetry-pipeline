@@ -9,7 +9,7 @@ import argparse
 import sys
 from pathlib import Path
 
-import pandas as pd
+import pandas as pd  # type: ignore[import-untyped]
 
 # Expected CSV columns (order flexible; we validate presence)
 EXPECTED_COLUMNS = [
@@ -174,10 +174,18 @@ def write_report(
     if numeric_summary.empty:
         lines.append("No numeric summary available.")
     else:
-        lines.append("| Column | Mean | Max | Min |")
-        lines.append("|--------|------|-----|-----|")
+        # Format with fixed column widths for better alignment
+        col_width = 20  # Column name width
+        num_width = 10  # Numeric value width
+        lines.append(f"| {'Column':<{col_width}} | {'Mean':>{num_width}} | {'Max':>{num_width}} | {'Min':>{num_width}} |")
+        lines.append(f"|{'-'*(col_width+2)}|{'-'*(num_width+2)}|{'-'*(num_width+2)}|{'-'*(num_width+2)}|")
         for _, row in numeric_summary.iterrows():
-            lines.append(f"| {row['column']} | {row['mean']} | {row['max']} | {row['min']} |")
+            lines.append(
+                f"| {row['column']:<{col_width}} | "
+                f"{row['mean']:>{num_width}} | "
+                f"{row['max']:>{num_width}} | "
+                f"{row['min']:>{num_width}} |"
+            )
         lines.append("")
 
     lines.extend([
@@ -187,14 +195,16 @@ def write_report(
     if warnings_df.empty:
         lines.append("No WARNING events found.")
     else:
-        lines.append("| Timestamp | Event description |")
-        lines.append("|-----------|--------------------|")
+        ts_width = 20  # Timestamp width
+        desc_width = 50  # Description width
+        lines.append(f"| {'Timestamp':<{ts_width}} | {'Event description':<{desc_width}} |")
+        lines.append(f"|{'-'*(ts_width+2)}|{'-'*(desc_width+2)}|")
         for _, row in warnings_df.iterrows():
             ts = row.get("timestamp", "")
             desc = row.get("event_description", "")
             # Escape pipe in description for markdown table
             desc = str(desc).replace("|", "\\|")
-            lines.append(f"| {ts} | {desc} |")
+            lines.append(f"| {str(ts):<{ts_width}} | {desc:<{desc_width}} |")
         lines.append("")
 
     lines.extend([
@@ -206,14 +216,24 @@ def write_report(
     if not breaches:
         lines.append("No threshold breaches detected.")
     else:
-        lines.append("| Timestamp | Column | Value | Limit (max/min) |")
-        lines.append("|-----------|--------|-------|-----------------|")
+        ts_width = 20  # Timestamp width
+        col_width = 20  # Column name width
+        val_width = 10  # Value width
+        limit_width = 15  # Limit width
+        lines.append(
+            f"| {'Timestamp':<{ts_width}} | {'Column':<{col_width}} | "
+            f"{'Value':>{val_width}} | {'Limit (max/min)':<{limit_width}} |"
+        )
+        lines.append(f"|{'-'*(ts_width+2)}|{'-'*(col_width+2)}|{'-'*(val_width+2)}|{'-'*(limit_width+2)}|")
         for b in breaches:
             val = b["value"]
             if isinstance(val, float):
                 val = round(val, 2)
             limit_str = f"{b['limit_type']}={b['limit_value']}"
-            lines.append(f"| {b['timestamp']} | {b['column']} | {val} | {limit_str} |")
+            lines.append(
+                f"| {str(b['timestamp']):<{ts_width}} | {b['column']:<{col_width}} | "
+                f"{val:>{val_width}} | {limit_str:<{limit_width}} |"
+            )
         lines.append("")
 
     out_path.write_text("\n".join(lines), encoding="utf-8")
